@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Theme](https://img.shields.io/badge/theme-Matrix%20Dark-00ff41.svg)
 
-A lightweight, web-based Markdown editor utilizing a "Vault" file system approach (similar to Obsidian). Built on top of the **Simplo** dependency-free PHP framework.
+A lightweight, web-based Markdown editor utilizing a "Vault" file system approach (similar to Obsidian). Built on top of the **[Simplo](https://github.com/bhu1st/simplo)** dependency-free PHP framework.
 
 ## Screenshot
 
@@ -113,4 +113,4 @@ markpal/
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `[LICENSE](LICENSE)` for more information.
