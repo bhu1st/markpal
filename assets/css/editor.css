@@ -3,130 +3,230 @@
     --bg-color: #0d1117;
     --sidebar-bg: #161b22;
     --border-color: #30363d;
-    --text-color: #00ff41; /* Matrix Green */
+    --text-color: #00ff41;
     --text-dim: #008f11;
     --accent: #238636;
+    --tab-inactive-bg: #21262d;
+    --tab-active-bg: #0d1117;
 }
 
 body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+    margin: 0; padding: 0; height: 100%;
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: 'Consolas', 'Monaco', monospace;
     overflow: hidden;
 }
 
-/* Layout Containers */
+/* --- Layout --- */
 .app-container {
     display: flex;
     height: 100vh;
     flex-direction: row;
 }
 
-#sidebar, #middle-pane, #right-pane {
-    height: 100%;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Sidebar Specifics */
 #sidebar {
     background-color: var(--sidebar-bg);
-    padding: 10px;
-    font-size: 14px;
-}
-
-/* Sidebar Header Layout */
-.sidebar-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 5px;
+    flex-direction: column;
+    overflow: hidden;
+    /* Ensure no flex property fights with Split.js style injection */
 }
 
-.sidebar-header h3 {
-    margin: 0;
-}
-
-#settings-btn {
-    background: transparent;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-}
-#settings-btn:hover {
-    transform: rotate(45deg);
-    transition: transform 0.3s;
-}
-
-/* Modal Styling */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+#editors-wrapper {
+    display: flex;
+    flex: 1;
     height: 100%;
-    background: rgba(0,0,0,0.85);
-    z-index: 9999;
+    overflow: hidden;
+    /* Split.js will inject widths/flex-basis here for the inner items */
+}
+
+.editor-pane {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg-color);
+    border-left: 1px solid var(--border-color);
+    position: relative;
+    min-width: 200px;
 }
 
-.modal-content {
-    background: #161b22;
-    padding: 30px;
-    border: 1px solid var(--text-color);
-    width: 400px;
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
-}
-
-.modal-actions {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.file-node {
-    padding: 4px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.file-node:hover {
-    background-color: var(--border-color);
-    color: #fff;
-}
-
-.folder-node {
-    font-weight: bold;
-    color: #fff;
-    margin-top: 5px;
-}
-
-/* Editor Panes */
-.pane-header {
-    background: var(--sidebar-bg);
+/* --- Sidebar Specifics --- */
+.sidebar-header {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+.sidebar-controls {
+    padding: 10px;
+    display: flex;
+    gap: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+#file-tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
 
-.editor-area {
+/* --- TREE VIEW STYLES (Fix for visibility) --- */
+.tree-root { list-style: none; padding: 0; margin: 0; }
+.tree-item { margin-left: 10px; list-style: none; }
+.file-node, .folder-label { padding: 4px 8px; cursor: pointer; white-space: nowrap; display: block; color: #8b949e; }
+.file-node:hover, .folder-label:hover { background-color: var(--border-color); color: #fff; }
+
+.folder-children { 
+    display: none; 
+    margin-left: 8px; 
+    border-left: 1px solid #333; 
+}
+.folder-open > .folder-children { display: block; }
+.folder-open > .folder-label { color: #fff; font-weight: bold; }
+/* Arrow icons */
+.folder-label::before { content: '▶'; font-size: 10px; margin-right: 6px; display:inline-block; transition: transform 0.2s; }
+.folder-open > .folder-label::before { transform: rotate(90deg); }
+
+.search-hidden { display: none !important; }
+
+/* --- Tab Bar --- */
+.tab-bar {
+    display: flex;
+    background: var(--sidebar-bg);
+    height: 35px;
+    flex-shrink: 0;
+    align-items: flex-end; /* Align tabs to bottom of bar */
+    padding-right: 30px; /* Space for close pane button */
+    position: relative;
+    overflow-x: auto;
+}
+.tab-bar::-webkit-scrollbar { height: 2px; }
+
+/* Close Pane Button */
+.pane-close-trigger {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 35px;
+    width: 30px;
+    background: #330000;
+    color: #ff4444;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-bottom: 1px solid var(--border-color);
+}
+.pane-close-trigger:hover { background: #550000; color: white; }
+
+.tab {
+    display: flex;
+    align-items: center;
+    height: 34px; /* 1px less than bar */
+    padding: 0 10px;
+    background: var(--tab-inactive-bg);
+    border-right: 1px solid var(--border-color);
+    border-top: 1px solid transparent;
+    cursor: pointer;
+    font-size: 13px;
+    max-width: 180px;
+    min-width: 100px;
+    user-select: none;
+    color: #888;
+}
+
+.tab.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-top: 2px solid var(--text-color);
+}
+
+.tab-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 5px;
+}
+
+.tab-icon-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    border-radius: 3px;
+}
+.tab-icon-btn:hover { color: #fff; background: #333; }
+
+/* --- Tab Menu --- */
+.tab-menu-dropdown {
+    position: absolute;
+    top: 35px;
+    right: 5px;
+    background: #1c2128;
+    border: 1px solid var(--border-color);
+    z-index: 100;
+    min-width: 150px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    display: none;
+}
+.tab-menu-dropdown.show { display: block; }
+.menu-item { padding: 8px 12px; color: #ccc; cursor: pointer; font-size: 13px; }
+.menu-item:hover { background: var(--accent); color: white; }
+
+/* --- GLOBAL CONTEXT MENU (New) --- */
+#global-tab-menu {
+    position: fixed; /* Fixed relative to viewport to avoid clipping */
+    background: #1c2128;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 99999;
+    min-width: 160px;
+    display: none;
+    border-radius: 6px;
+    padding: 4px 0;
+}
+
+#global-tab-menu .menu-item {
+    padding: 8px 16px;
+    color: #c9d1d9;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#global-tab-menu .menu-item:hover {
+    background: var(--accent);
+    color: white;
+}
+
+/* Visual feedback for the Active Pane */
+.editor-pane.active-focus {
+    box-shadow: inset 0 0 0 1px var(--text-color); /* Subtle green border inside */
+}
+
+/* --- Editor Area --- */
+.editor-content-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* FIX: Constrain height so children scroll, not the parent */
+    overflow: hidden; 
+    min-height: 0; /* Important fix for Firefox/Flexbox nested scrolling */
+}
+
+.editor-area, .preview-area {
     flex: 1;
     width: 100%;
-    background-color: var(--bg-color);
-    color: var(--text-color);
     border: none;
     padding: 15px;
     resize: none;
@@ -134,151 +234,32 @@ body, html {
     font-size: 14px;
     line-height: 1.6;
     outline: none;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    /* FIX: Enable vertical scrolling for both editor and preview */
+    overflow-y: auto; 
 }
 
 .preview-area {
-    flex: 1;
-    padding: 15px;
-    display: none; /* Hidden by default */
+    display: none;
     background: #fff;
     color: #000;
-    overflow-y: auto;
+    padding-bottom: 40px; 
 }
 
-/* Split JS Gutters */
-.gutter {
-    background-color: var(--border-color);
-    background-repeat: no-repeat;
-    background-position: 50%;
-}
-.gutter.gutter-horizontal {
-    cursor: col-resize;
+.pane-empty-state {
+    display: flex; justify-content: center; align-items: center; height: 100%; color: #444;
 }
 
-/* Inputs and Buttons */
-input[type="text"] {
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 5px;
-    width: 70%;
-}
+/* --- Misc --- */
+.gutter { background-color: var(--border-color); }
+.gutter.gutter-horizontal { cursor: col-resize; }
+input[type="text"] { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px; border-radius: 4px; }
+button { background: var(--accent); color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+button:hover { opacity: 0.9; }
 
-button {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-button:hover {
-    opacity: 0.9;
-}
-
-/* Active State */
-.active-pane {
-    border: 1px solid var(--text-color);
-}
-
-/* Sidebar Controls */
-.sidebar-controls {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-#file-tree {
-    margin-bottom: 30px;
-}
-
-#search-input {
-    flex: 1;
-    background: #000;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-}
-
-#new-file-btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    border-radius: 4px;
-    padding: 0 10px;
-}
-
-/* Tree View Hierarchy */
-.tree-root {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.tree-item {
-    margin-left: 10px;
-}
-
-.folder-label {
-    cursor: pointer;
-    display: block;
-    padding: 2px 0;
-    user-select: none;
-}
-
-.folder-label:hover {
-    color: #fff;
-}
-
-.folder-label::before {
-    content: '▶';
-    display: inline-block;
-    font-size: 10px;
-    margin-right: 5px;
-    transition: transform 0.2s;
-}
-
-.folder-open > .folder-label::before {
-    transform: rotate(90deg);
-}
-
-.folder-children {
-    display: none; /* Collapsed by default */
-    border-left: 1px solid #333;
-    margin-left: 4px;
-}
-
-.folder-open > .folder-children {
-    display: block;
-}
-
-/* Search Highlighting */
-.search-hidden {
-    display: none !important;
-}
-
-.search-match {
-    /* Styles for matched items if needed */
-}
-
-/* Close Button in Editor */
-.close-file-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: #ff4444;
-    font-size: 16px;
-    line-height: 1;
-    padding: 2px 8px;
-    margin-left: 10px;
-    border-radius: 4px;
-}
-.close-file-btn:hover {
-    background: #330000;
-}
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+.modal-content { background: #161b22; padding: 30px; border: 1px solid var(--text-color); width: 400px; }
+.save-status { position: absolute; bottom: 5px; right: 15px; font-size: 10px; color: #666; pointer-events: none; }
