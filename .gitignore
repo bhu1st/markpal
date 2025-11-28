@@ -1,0 +1,3 @@
+# Dependency management
+/vendor/
+/node_modules/
